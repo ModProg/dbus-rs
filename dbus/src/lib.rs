@@ -22,6 +22,9 @@ extern crate libc;
 #[allow(missing_docs)]
 extern crate libdbus_sys as ffi;
 
+// makes procmaros using `::dbus` work inside this crate
+extern crate self as dbus;
+
 pub use crate::message::{Message, MessageType};
 
 pub mod message;

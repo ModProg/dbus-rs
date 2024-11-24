@@ -1,16 +1,38 @@
 #![allow(dead_code)]
 
-use crate::{Signature, arg::TypeMismatchError, arg::Variant};
-use std::{fmt, any};
+use crate::{arg::TypeMismatchError, arg::Variant, Signature};
 use std::sync::Arc;
+use std::{any, fmt};
 // use std::rc::Rc;
 use std::collections::HashMap;
 
-use super::{Iter, IterAppend, ArgType};
+#[cfg(feature = "macros")]
+pub use dbus_macros::Arg;
+
+use super::{ArgType, Iter, IterAppend};
 
 /// Types that can represent a D-Bus message argument implement this trait.
 ///
 /// Types should also implement either Append or Get to be useful.
+///
+/// Can also be derived:
+/// ```
+/// use dbus::arg::Arg;
+///
+/// #[derive(Arg)]
+/// #[dbus(signature = "s")]
+/// struct ExplicitSignature;
+/// assert_eq!(ExplicitSignature::signature(), "s");
+/// ```
+///
+/// Depending on the type the signature can also be inferred:
+/// ```
+/// use dbus::arg::Arg;
+///
+/// #[derive(Arg)]
+/// struct Struct(u8, String);
+/// assert_eq!(Struct::signature(), "(ys)");
+/// ```
 pub trait Arg {
     /// The corresponding D-Bus argument type code.
     const ARG_TYPE: ArgType;
@@ -20,7 +42,7 @@ pub trait Arg {
 
 /// Helper trait to introspect many arguments.
 pub trait ArgAll {
-    /// A tuple of &static str. Used for introspection.
+    /// A tuple of `&'static str`. Used for introspection.
     #[allow(non_camel_case_types)] // Note: This should be changed for 0.9 - but for now, don't break backwards compatibility
     type strs;
     /// Enumerates all arguments with their signatures (introspection helper method).
@@ -594,5 +616,44 @@ mod test {
                 break;
             }
         }
+    }
+
+    #[cfg(feature = "macros")]
+    #[test]
+    fn derive_arg() {
+        use super::Arg;
+
+        #[derive(Arg)]
+        #[dbus(signature = "y")]
+        union Union {
+            field: u8,
+        }
+
+        assert_eq!(Union::signature(), "y");
+
+        #[derive(Arg)]
+        #[dbus(signature = "s")]
+        enum EmptyEnum {}
+
+        assert_eq!(EmptyEnum::signature(), "s");
+
+        #[derive(Arg)]
+        enum UnitEnum {
+            A,
+            B,
+            C,
+        }
+
+        assert_eq!(UnitEnum::signature(), "s");
+
+        #[derive(Arg)]
+        #[dbus(signature = "y")]
+        enum UnitEnumExplicitSignature {
+            A,
+            B,
+            C,
+        }
+
+        assert_eq!(UnitEnumExplicitSignature::signature(), "y");
     }
 }

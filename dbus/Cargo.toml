@@ -19,6 +19,7 @@ libdbus-sys = { path = "../libdbus-sys", version = "0.2.3" }
 futures-util = { version = "0.3", optional = true, default-features = false }
 futures-channel = { version = "0.3", optional = true }
 futures-executor = { version = "0.3", optional = true }
+dbus-macros = { path = "../dbus-macros", version = "0.1.0", optional = true }
 # dbus-native-channel = { path = "../dbus-native-channel", version = "0.1", optional = true }
 
 [target.'cfg(windows)'.dependencies]
@@ -28,10 +29,12 @@ windows-sys = { version = "0.59.0", features = ["Win32_Networking_WinSock"] }
 tempfile = "3"
 
 [features]
+default = ["macros"]
 no-string-validation = []
 stdfd = []
 vendored = ["libdbus-sys/vendored"]
 futures = ["futures-util", "futures-channel"]
+macros = ["dep:dbus-macros"]
 # Not ready yet
 # native-channel = ["futures-executor", "futures-util/io", "dbus-native-channel"]
 
@@ -39,4 +42,4 @@ futures = ["futures-util", "futures-channel"]
 maintenance = { status = "actively-developed" }
 
 [package.metadata.docs.rs]
-features = [ "futures" ]
+features = [ "futures", "macros" ]
